@@ -5,6 +5,7 @@ ADD requirements.txt /app
 RUN pip install -r requirements.txt
 
 ADD . /app
+ENV GOOGLE_APPLICATION_CREDENTIALS="/app/google-application-credentials.json"
 EXPOSE 80
 
 CMD ["python", "admin-pager.py"]

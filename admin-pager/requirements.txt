@@ -1,2 +1,3 @@
 sendgrid
 python-decouple
+google-cloud-datastore

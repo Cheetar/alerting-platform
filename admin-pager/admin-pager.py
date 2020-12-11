@@ -7,10 +7,14 @@ import logging
 from decouple import config
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
+from google.cloud import datastore
+from datetime import datetime
+
+
+datastore_client = datastore.Client()
 
 root = logging.getLogger()
 root.setLevel(logging.DEBUG)
-
 handler = logging.StreamHandler(sys.stdout)
 handler.setLevel(logging.DEBUG)
 formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
@@ -22,15 +26,48 @@ def generate_token(token_length=32):
     return secrets.token_hex(token_length)
 
 
+def store_log(message):
+    kind = "Log"
+    token = generate_token()
+    task_key = datastore_client.key(kind, token)
+    task = datastore.Entity(key=task_key)
+
+    current_datetime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    task["datetime"] = current_datetime
+    task["message"] = message
+    datastore_client.put(task)
+
+    logging.info(message)
+
+
 def has_admin_responded(token):
-    # TODO retrieve from key-value store
+    query = datastore_client.query(kind='Admin response')
+    query.add_filter("token", "=", token)
+    res = query.fetch(limit=1)
+    if len(list(res)) > 0:
+        return True
     return False
+
+
+def save_admin_response(token):
+    kind = "Admin response"
+    task_key = datastore_client.key(kind, token)
+    task = datastore.Entity(key=task_key)
+
+    current_datetime = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+    task["token"] = token
+    task["datetime"] = current_datetime
+    datastore_client.put(task)
+
+    message = f"Admin responded to service being down. Event token: {task.key.name}"
+    store_log(message)
+    logging.info(message)
 
 
 def retrieve_service_details(service_name):
     # TODO retrieve from configuration manager
-    return {'main_admin_email': "mateusz@sieniawski.net",
-            'secondary_admin_email': "msieniawski98@gmail.com",
+    return {'main_admin_email': "msieniawski98@gmail.com",
+            'secondary_admin_email': "mateusz@sieniawski.net",
             'allowed_response_time': 300,
             }
 
@@ -70,9 +107,11 @@ def notify_secondary_admin(admin_email, service_name):
 
 def handle_notifying_admins(service_name, main_admin_email, secondary_admin_email, allowed_response_time):
     token = notify_main_admin(main_admin_email, service_name)
+    store_log(f"Admin {main_admin_email} has been notified about {service_name} being down.")
     time.sleep(allowed_response_time)
     if not has_admin_responded(token):
         notify_secondary_admin(secondary_admin_email, service_name)
+        store_log(f"Secondary admin {secondary_admin_email} has been notified about {service_name} being down.")
 
 
 def handle_service_down(service_name):
