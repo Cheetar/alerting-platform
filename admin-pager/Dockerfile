@@ -6,6 +6,6 @@ RUN pip install -r requirements.txt
 
 ADD . /app
 ENV GOOGLE_APPLICATION_CREDENTIALS="/app/google-application-credentials.json"
-EXPOSE 80
+EXPOSE 8080
 
 CMD ["python", "admin-pager.py"]

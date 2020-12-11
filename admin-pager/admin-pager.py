@@ -9,8 +9,9 @@ from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
 from google.cloud import datastore
 from datetime import datetime
+from flask import Flask
 
-
+app = Flask(__name__)
 datastore_client = datastore.Client()
 
 root = logging.getLogger()
@@ -26,14 +27,17 @@ def generate_token(token_length=32):
     return secrets.token_hex(token_length)
 
 
+def get_current_datetime():
+    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+
 def store_log(message):
     kind = "Log"
     token = generate_token()
     task_key = datastore_client.key(kind, token)
     task = datastore.Entity(key=task_key)
 
-    current_datetime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    task["datetime"] = current_datetime
+    task["datetime"] = get_current_datetime()
     task["message"] = message
     datastore_client.put(task)
 
@@ -54,9 +58,8 @@ def save_admin_response(token):
     task_key = datastore_client.key(kind, token)
     task = datastore.Entity(key=task_key)
 
-    current_datetime = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
     task["token"] = token
-    task["datetime"] = current_datetime
+    task["datetime"] = get_current_datetime()
     datastore_client.put(task)
 
     message = f"Admin responded to service being down. Event token: {task.key.name}"
@@ -127,4 +130,22 @@ def handle_service_down(service_name):
         logging.error(e)
 
 
-handle_service_down("example.com")
+@app.route('/notifies/<token>/')
+def admin_responded(token):
+    save_admin_response(token)
+    return "Thank you for responding to the event."
+
+
+@app.route('/service-down/<service_name>/')
+def service_down(service_name):
+    handle_service_down(service_name)
+    return "OK"
+
+
+@app.route('/health/')
+def health():
+    return "OK"
+
+
+if __name__ == "__main__":
+    app.run(host='0.0.0.0', port=8080)
