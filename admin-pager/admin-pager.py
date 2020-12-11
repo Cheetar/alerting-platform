@@ -34,12 +34,12 @@ def get_current_datetime():
 def store_log(message):
     kind = "Log"
     token = generate_token()
-    task_key = datastore_client.key(kind, token)
-    task = datastore.Entity(key=task_key)
+    log_key = datastore_client.key(kind, token)
+    log = datastore.Entity(key=log_key)
 
-    task["datetime"] = get_current_datetime()
-    task["message"] = message
-    datastore_client.put(task)
+    log["datetime"] = get_current_datetime()
+    log["message"] = message
+    datastore_client.put(log)
 
     logging.info(message)
 
@@ -55,14 +55,14 @@ def has_admin_responded(token):
 
 def save_admin_response(token):
     kind = "Admin response"
-    task_key = datastore_client.key(kind, token)
-    task = datastore.Entity(key=task_key)
+    admin_response_key = datastore_client.key(kind, token)
+    admin_response = datastore.Entity(key=admin_response_key)
 
-    task["token"] = token
-    task["datetime"] = get_current_datetime()
-    datastore_client.put(task)
+    admin_response["token"] = token
+    admin_response["datetime"] = get_current_datetime()
+    datastore_client.put(admin_response)
 
-    message = f"Admin responded to service being down. Event token: {task.key.name}"
+    message = f"Admin responded to service being down. Event token: {admin_response.key.name}"
     store_log(message)
     logging.info(message)
 
