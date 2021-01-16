@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: request-scheduler
+  labels:
+    app: request-scheduler
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: request-scheduler
+  template:
+    metadata:
+      labels:
+        app: request-scheduler
+    spec:
+      containers:
+      - name: request-scheduler
+        image: gcr.io/alerting-platform/request-scheduler:v1
+        ports:
+        - containerPort: 8080
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 5
+

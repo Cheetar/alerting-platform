@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: configuration-manager
+  labels:
+    app: configuration-manager
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: configuration-manager
+  template:
+    metadata:
+      labels:
+        app: configuration-manager
+    spec:
+      containers:
+      - name: configuration-manager
+        image: gcr.io/alerting-platform/configuration-manager:v1
+        ports:
+        - containerPort: 8080
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 5
+
