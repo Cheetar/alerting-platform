@@ -4,6 +4,8 @@ import time
 import threading
 import secrets
 import logging
+import requests
+
 from decouple import config
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
@@ -11,8 +13,28 @@ from google.cloud import datastore
 from datetime import datetime
 from flask import Flask
 
+from google.cloud import datastore
+from kubernetes import client
+from google.cloud.container_v1 import ClusterManagerClient
+from google.oauth2 import service_account
+
 app = Flask(__name__)
 datastore_client = datastore.Client()
+
+
+SCOPES = ['https://www.googleapis.com/auth/cloud-platform']
+credentials = service_account.Credentials.from_service_account_file(os.getenv('GOOGLE_APPLICATION_CREDENTIALS'),
+                                                                    scopes=SCOPES)
+cluster_manager_client = ClusterManagerClient(credentials=credentials)
+cluster = cluster_manager_client.get_cluster(project_id=config("PROJECT_ID"), zone=config("ZONE"),
+                                             cluster_id=config("CLUSTER_ID"))
+cluster_configuration = client.Configuration()
+cluster_configuration.host = "https://" + cluster.endpoint + ":443"
+cluster_configuration.verify_ssl = False
+cluster_configuration.api_key = {"authorization": "Bearer " + credentials.token}
+client.Configuration.set_default(cluster_configuration)
+
+kubernetes_client = client.CoreV1Api()
 
 root = logging.getLogger()
 root.setLevel(logging.DEBUG)
@@ -68,11 +90,13 @@ def save_admin_response(token):
 
 
 def retrieve_service_details(service_name):
-    # TODO retrieve from configuration manager
-    return {'main_admin_email': "msieniawski98@gmail.com",
+    """ Example response
+            return {'main_admin_email': "msieniawski98@gmail.com",
             'secondary_admin_email': "mateusz@sieniawski.net",
-            'allowed_response_time': 300,
-            }
+            'allowed_response_time': 300}
+    """
+    response = requests.get("http://" + config('CONFIGURATION_MANAGER_SERVICE_NAME') + f".default.svc.cluster.local/service-details/{service_name}/")
+    return response.json()
 
 
 def send_mail(to_emails, subject, html_content):
@@ -94,10 +118,19 @@ def send_mail(to_emails, subject, html_content):
         logging.error(e)
 
 
+def get_admin_pager_service_ip():
+    result = kubernetes_client.list_namespaced_service(namespace="default", watch=False)
+    for item in result.items:
+        if item.metadata.name == config("ADMIN_PAGER_SERVICE_NAME"):
+            return item.status.load_balancer.ingress[0].ip
+    return None
+
+
 def notify_main_admin(admin_email, service_name):
     subject = f"{service_name} is down"
     token = generate_token()
-    html_content = f"Dear administrator of {service_name},<br/><br/>Service {service_name} is down. Please respond to this message by visiting {config('URL')}/notifies/{token}. Otherwise, the second administrator will also be notified.<br/><br/>Sincerely,<br/>Alerting platform team"
+    admin_pager_external_ip = get_admin_pager_service_ip()
+    html_content = f"Dear administrator of {service_name},<br/><br/>Service {service_name} is down. Please respond to this message by visiting http://{admin_pager_external_ip}/notifies/{token}. Otherwise, the second administrator will also be notified.<br/><br/>Sincerely,<br/>Alerting platform team"
     send_mail(admin_email, subject, html_content)
     return token
 
@@ -148,4 +181,4 @@ def health():
 
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=8080)
+    app.run(host='0.0.0.0', port=9080)

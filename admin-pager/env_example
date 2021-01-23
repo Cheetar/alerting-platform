@@ -1,3 +1,10 @@
 SENDGRID_SENDER_EMAIL='admin@example.com'
-URL='http://localhost:8080'
 SENDGRID_API_KEY=''
+
+PROJECT_ID='alerting-platform'
+ZONE='us-east1-c'
+CLUSTER_ID='alerting-platform-cluster'
+
+CONFIGURATION_MANAGER_SERVICE_NAME='configuration-manager-service'
+ADMIN_PAGER_SERVICE_NAME='admin-pager-service'
+

@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: admin-pager
+  labels:
+    app: admin-pager
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: admin-pager
+  template:
+    metadata:
+      labels:
+        app: admin-pager
+    spec:
+      containers:
+      - name: admin-pager
+        image: gcr.io/magnetic-port-293211/admin-pager:v16
+        ports:
+        - containerPort: 9080
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 9080
+          initialDelaySeconds: 5
+          periodSeconds: 5
+

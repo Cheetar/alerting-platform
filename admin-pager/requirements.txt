@@ -1,4 +1,13 @@
-flask
-sendgrid
-python-decouple
-google-cloud-datastore
+flask==1.1.2
+sendgrid==6.4.8
+python-decouple==3.4
+google-cloud-datastore==2.1.0
+google-auth==1.24.0
+google-cloud-container==2.3.0
+google-api-python-client==1.12.8
+google-cloud-datastore==2.1.0
+flask_expects_json==1.5.0
+kubernetes==12.0.1
+protobuf==3.14.0
+requests==2.25.1
+gunicorn==20.0.4

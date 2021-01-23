@@ -6,6 +6,6 @@ RUN pip install -r requirements.txt
 
 ADD . /app
 ENV GOOGLE_APPLICATION_CREDENTIALS="/app/google-application-credentials.json"
-EXPOSE 8080
+EXPOSE 9080
 
-CMD ["python", "admin-pager.py"]
+CMD ["gunicorn", "-w 1", "--threads=4", "-b 0.0.0.0:9080", "admin-pager:app"]
