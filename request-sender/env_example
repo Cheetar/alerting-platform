@@ -1,0 +1,6 @@
+PROJECT_ID='magnetic-port-293211'
+ZONE='us-central1-c'
+CLUSTER_ID='alerting-platform-cluster'
+PUBSUB_REQUESTS_TOPIC='request_topic'
+PUBSUB_REPORT_TOPIC=''
+SERVICES_TIMEOUT='5'

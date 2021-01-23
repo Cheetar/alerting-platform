@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: request-sender
+  labels:
+    app: request-sender
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: request-sender
+  template:
+    metadata:
+      labels:
+        app: request-sender
+    spec:
+      containers:
+      - name: request-sender
+        image: 161a692c4b1c 
+        ports:
+        - containerPort: 8081
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8081
+          initialDelaySeconds: 5
+          periodSeconds: 5
+

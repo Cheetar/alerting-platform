@@ -1,17 +1,16 @@
-import requests
 from google.cloud import pubsub_v1
 from decouple import config
 
 subscriber = pubsub_v1.SubscriberClient()
 subscription_path = subscriber.subscription_path(
     config('GOOGLE_CLOUD_PROJECT_ID'),
-    config('PUBSUB_TOPIC')
+    config('PUBSUB_REQUESTS_TOPIC')
 )
 
 publisher = pubsub_v1.PublisherClient()
 topic_path = publisher.topic_path(
     config('GOOGLE_CLOUD_PROJECT_ID'),
-    config('PUBSUB_TOPIC_REPORT')
+    config('PUBSUB_REPORT_TOPIC')
 )
 
 
