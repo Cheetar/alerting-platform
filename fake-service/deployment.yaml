@@ -1,22 +1,22 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: request-scheduler
+  name: fake-service
   labels:
-    app: request-scheduler
+    app: fake-service
 spec:
-  replicas: 3
+  replicas: 1
   selector:
     matchLabels:
-      app: request-scheduler
+      app: fake-service
   template:
     metadata:
       labels:
-        app: request-scheduler
+        app: fake-service
     spec:
       containers:
-      - name: request-scheduler
-        image: gcr.io/magnetic-port-293211/request-scheduler:v1
+      - name: fake-service
+        image: gcr.io/magnetic-port-293211/fake-service:v1
         ports:
         - containerPort: 8080
         livenessProbe:
