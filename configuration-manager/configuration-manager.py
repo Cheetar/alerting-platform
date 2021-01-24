@@ -109,7 +109,7 @@ def delete_configs_from_db(configurations):
         datastore_client.delete_multi(keys_to_delete)
 
 
-schema = {
+configurations_schema = {
     'type': 'array',
     'items': {
         'type': 'object',
@@ -126,6 +126,14 @@ schema = {
     }
 }
 
+service_url_schema = {
+    'type': 'object',
+    'properties': {
+        'service_url': {'type': 'string'},
+    },
+    'required': ['service_url']
+}
+
 
 @app.before_first_request
 def before_first_request():
@@ -134,7 +142,7 @@ def before_first_request():
 
 
 @app.route('/configurations/', methods=['PUT'])
-@expects_json(schema)
+@expects_json(configurations_schema)
 def update_configurations():
     configurations = request.get_json()
     try:
@@ -151,7 +159,7 @@ def update_configurations():
 
 
 @app.route('/configurations/', methods=['DELETE'])
-@expects_json(schema)
+@expects_json(configurations_schema)
 def delete_configurations():
     configurations = request.get_json()
     try:
@@ -167,8 +175,11 @@ def delete_configurations():
     return "OK"
 
 
-@app.route('/service-details/<service_url>/', methods=['GET'])
-def get_service_details(service_url):
+@app.route('/service-details/', methods=['POST'])
+@expects_json(service_url_schema)
+def get_service_details():
+    data = request.get_json()
+    service_url = data["service_url"]
     key = get_datastore_key(service_url)
     configuration = datastore_client.get(key)
     if configuration is None:
