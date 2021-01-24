@@ -37,6 +37,8 @@ def set_service_available():
 def test_service():
     if isResponding:
         return "OK"
+    else:
+        return "Service not responding", 500
 
 
 @app.route('/health/')
