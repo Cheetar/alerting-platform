@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: admin-pager
-        image: gcr.io/magnetic-port-293211/admin-pager:v16
+        image: gcr.io/magnetic-port-293211/admin-pager:v19
         ports:
         - containerPort: 9080
         livenessProbe:
