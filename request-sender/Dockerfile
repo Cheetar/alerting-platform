@@ -8,4 +8,4 @@ ADD . /app
 ENV GOOGLE_APPLICATION_CREDENTIALS="/app/google-application-credentials.json"
 EXPOSE 8080
 
-CMD ["gunicorn", "-w 1", "--threads=4", "-b 0.0.0.0:8080", "configuration-manager:app"]
+CMD ["gunicorn", "-w 1", "--threads=1", "-b 0.0.0.0:8080", "request-sender:flask_app"]

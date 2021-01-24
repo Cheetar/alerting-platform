@@ -1,54 +1,73 @@
+import sys
 import threading
+import logging
+import time
 import requests
 from google.cloud import pubsub_v1
-import logging
 from decouple import config
-
-subscription_path = "projects/magnetic-port-293211/subscriptions/request_topic-sub"
-
-publisher = pubsub_v1.PublisherClient()
-publisher_path = "projects/magnetic-port-293211/topics/unavailability_report"
+from flask import Flask
 
 
-services_timeout = 5
-threads_number = 10
+root = logging.getLogger()
+root.setLevel(logging.INFO)
+handler = logging.StreamHandler(sys.stdout)
+handler.setLevel(logging.INFO)
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+handler.setFormatter(formatter)
+root.addHandler(handler)
+
+
+subscription_path = 'projects/{project_id}/subscriptions/{topic}'.format(
+    project_id=config('PROJECT_ID'),
+    topic=config('PUBSUB_REQUESTS_TOPIC'),
+)
+
+
+services_timeout = int(config('SERVICES_TIMEOUT'))
+threads_number = int(config('THREADS_NUMBER'))
 
 
 def submit_unavailability(url):
-    publisher.publish(publisher_path, b'Report', service_url=url)
-    print("Service {} reported.".format(url))
+    logging.info("Report " + url)
+    requests.post("http://" + config('ADMIN_PAGER_SERVICE_NAME') + f".default.svc.cluster.local/service-down/",
+                  data={"service_url": url})
 
 
-def test_service_available(url):
+def test_service_available(url, alert_window):
     try:
         request = requests.get(url, timeout=services_timeout)
         if request.status_code == 200:
-            result = True
-            print("Service {} is available.".format(url))
+            logging.info("Available " + url)
+            return True
         else:
-            result = False
-            print("Service {} is not available.".format(url))
-    except TimeoutError:
-        result = False
-        print("Service {} timeout.".format(url))
-    except Exception as e:
-        result = False
-        print("Service {} unavailable.".format(url))
-    return result
+            logging.info("Wait " + url)
+            raise Exception()
+    except (TimeoutError, Exception):
+        time.sleep(alert_window)
+        try:
+            request2 = requests.get(url, timeout=services_timeout)
+            if request2.status_code == 200:
+                logging.info("Available " + url)
+                return True
+            else:
+                raise Exception()
+        except (TimeoutError, Exception):
+            logging.info("Unavailable " + url)
+            return False
 
 
 def callback(message):
-    print(threading.get_ident())
-    if not 'service_url' in message.attributes:
+    if 'service_url' not in message.attributes or 'alerting_window' not in message.attributes:
         message.ack()
-        print("Request has not url")
+        logging.info("Attributes not complete")
         return
-    if not test_service_available(message.attributes['service_url']):
+    if not test_service_available(message.attributes['service_url'],
+                                  int(message.attributes['alerting_window'])):
         submit_unavailability(message.attributes['service_url'])
     message.ack()
 
 
-if __name__ == "__main__":
+def request_sender():
     subscriber_shutdown = threading.Event()
     futures = list()
     subscribers = list()
@@ -68,3 +87,12 @@ if __name__ == "__main__":
             f.cancel()
         for s in subscribers:
             s.close()
+
+
+threading.Thread(target=request_sender).start()
+flask_app = Flask(__name__)
+
+
+@flask_app.route('/health/')
+def health():
+    return "OK"

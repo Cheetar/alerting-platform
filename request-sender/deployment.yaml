@@ -5,7 +5,7 @@ metadata:
   labels:
     app: request-sender
 spec:
-  replicas: 1
+  replicas: 3
   selector:
     matchLabels:
       app: request-sender
@@ -16,13 +16,13 @@ spec:
     spec:
       containers:
       - name: request-sender
-        image: 161a692c4b1c 
+        image: gcr.io/magnetic-port-293211/request_sender:v1
         ports:
-        - containerPort: 8081
+        - containerPort: 8080
         livenessProbe:
           httpGet:
             path: /health
-            port: 8081
+            port: 8080
           initialDelaySeconds: 5
           periodSeconds: 5
 
