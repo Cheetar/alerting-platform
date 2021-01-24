@@ -175,6 +175,19 @@ def delete_configurations():
     return "OK"
 
 
+@app.route('/configurations/', methods=['GET'])
+def get_configurations():
+    try:
+        configurations = get_all_configurations()
+    except Exception as e:
+        logging.error(e)
+        return Response(
+            "Configurations get failed",
+            status=500,
+        )
+    return jsonify(configurations)
+
+
 @app.route('/service-details/', methods=['POST'])
 @expects_json(service_url_schema)
 def get_service_details():
