@@ -102,10 +102,12 @@ def retrieve_service_details(service_name):
 
 
 def send_mail(to_emails, subject, html_content):
-    email = "**Email to:** " + to_emails + "\n" + \
-            "**Subject:**" + subject + "\n" + html_content
-    headers = {'Content-Type': 'application/json', 'Accept':'application/json'}
-    requests.post("https://hooks.slack.com/services/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",
+    email = "=====================================\n"\
+            "*Email to:* " + to_emails + "\n" + \
+            "*Subject:* " + subject + "\n" + html_content + \
+            "\n=====================================\n"
+    headers = {'Content-Type': 'application/json'}
+    a = requests.post("https://hooks.slack.com/services/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",
                   json={"text": email}, headers=headers)
 
 
@@ -213,4 +215,5 @@ def health():
 
 
 if __name__ == "__main__":
+    #send_mail("a.rozenek@student.uw.edu.pl", "Alert", "Test")
     app.run(host='0.0.0.0', port=9080)
