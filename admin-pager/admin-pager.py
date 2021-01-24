@@ -215,5 +215,4 @@ def health():
 
 
 if __name__ == "__main__":
-    #send_mail("a.rozenek@student.uw.edu.pl", "Alert", "Test")
     app.run(host='0.0.0.0', port=9080)
