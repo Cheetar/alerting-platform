@@ -1,7 +1,7 @@
 SENDGRID_SENDER_EMAIL='admin@example.com'
 SENDGRID_API_KEY=''
 
-PROJECT_ID='alerting-platform'
+PROJECT_ID='magnetic-port-293211'
 ZONE='us-east1-c'
 CLUSTER_ID='alerting-platform-cluster'
 

@@ -12,6 +12,7 @@ from sendgrid.helpers.mail import Mail
 from google.cloud import datastore
 from datetime import datetime
 from flask import Flask
+from flask_expects_json import expects_json
 
 from google.cloud import datastore
 from kubernetes import client
@@ -169,9 +170,23 @@ def admin_responded(token):
     return "Thank you for responding to the event."
 
 
-@app.route('/service-down/<service_name>/')
-def service_down(service_name):
-    handle_service_down(service_name)
+schema = {
+    'type': 'object',
+    'properties': {
+        'service_url': {'type': 'string'},
+    },
+    'required': ['service_url']
+}
+
+
+@app.route('/service-down/', methods=['POST'])
+@expects_json(schema)
+def service_down():
+    """ Example data: {"service_url": "www.google.com/"}
+    """
+    data = request.get_json()
+    service_url = data["service_url"]
+    handle_service_down(service_url)
     return "OK"
 
 
