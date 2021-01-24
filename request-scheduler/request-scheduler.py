@@ -39,8 +39,9 @@ def send_to_queue(service_url, alerting_window):
 
 def schedule_single_service_requests(actual_config_version, configuration):
     initial_config_version = actual_config_version()
+    num_seconds_in_hour = 3600
     while True:
-        time.sleep(configuration['frequency'])
+        time.sleep(num_seconds_in_hour / configuration['frequency'])
         if initial_config_version == actual_config_version():
             send_to_queue(configuration['service_url'], configuration['alerting_window'])
 
@@ -61,8 +62,8 @@ schema = {
         'type': 'object',
         'properties': {
             'service_url': {'type': 'string'},
-            'frequency': {'type': 'integer'},
-            'alerting_window': {'type': 'integer'}
+            'frequency': {'type': 'number', 'exclusiveMinimum': 0},
+            'alerting_window': {'type': 'number', 'exclusiveMinimum': 0}
         },
         'required': ['service_url', 'frequency', 'alerting_window']
     }

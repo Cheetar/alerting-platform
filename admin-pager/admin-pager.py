@@ -11,10 +11,9 @@ from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
 from google.cloud import datastore
 from datetime import datetime
-from flask import Flask
+from flask import Flask, request
 from flask_expects_json import expects_json
 
-from google.cloud import datastore
 from kubernetes import client
 from google.cloud.container_v1 import ClusterManagerClient
 from google.oauth2 import service_account
@@ -96,7 +95,9 @@ def retrieve_service_details(service_name):
             'secondary_admin_email': "mateusz@sieniawski.net",
             'allowed_response_time': 300}
     """
-    response = requests.get("http://" + config('CONFIGURATION_MANAGER_SERVICE_NAME') + f".default.svc.cluster.local/service-details/{service_name}/")
+    headers = {'Content-Type': 'application/json', 'Accept':'application/json'}
+    response = requests.post("http://" + config('CONFIGURATION_MANAGER_SERVICE_NAME') + f".default.svc.cluster.local/service-details/",
+                             json={"service_url": service_name}, headers=headers)
     return response.json()
 
 
@@ -143,15 +144,21 @@ def notify_secondary_admin(admin_email, service_name):
 
 
 def handle_notifying_admins(service_name, main_admin_email, secondary_admin_email, allowed_response_time):
+    logging.info(f"Handling notifying admins {main_admin_email} and {secondary_admin_email} that service {service_name} is down...")
     token = notify_main_admin(main_admin_email, service_name)
     store_log(f"Admin {main_admin_email} has been notified about {service_name} being down.")
+    logging.info(f"Waiting for the main admin response...")
     time.sleep(allowed_response_time)
     if not has_admin_responded(token):
+        logging.info(f"Main admin has not responded...")
+        logging.info(f"Notyfing second admin...")
         notify_secondary_admin(secondary_admin_email, service_name)
+        logging.info(f"Second admin has been notified")
         store_log(f"Secondary admin {secondary_admin_email} has been notified about {service_name} being down.")
 
 
 def handle_service_down(service_name):
+    logging.info(f"Retrieving service {service_name} details...")
     service_details = retrieve_service_details(service_name)
     main_admin_email = service_details.get('main_admin_email')
     secondary_admin_email = service_details.get('secondary_admin_email')
@@ -184,8 +191,10 @@ schema = {
 def service_down():
     """ Example data: {"service_url": "www.google.com/"}
     """
+    logging.info("Service down called")
     data = request.get_json()
     service_url = data["service_url"]
+    logging.info(f"Handling {service_url} being down...")
     handle_service_down(service_url)
     return "OK"
 
