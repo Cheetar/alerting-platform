@@ -52,9 +52,9 @@ def generate_token(token_length=32):
 email_token = generate_token()
 MAIN_ADMIN_EMAIL = f"{email_token}@bar.com"
 SECONDARY_ADMIN_EMAIL = f"{email_token}2@bar.com"
-ALERTING_WINDOW = 2  # seconds
-ALLOWED_RESPONSE_TIME = 2  # seconds
-FREQUENCY = 1  # RPS
+ALERTING_WINDOW = 30  # seconds
+ALLOWED_RESPONSE_TIME = 30  # seconds
+FREQUENCY = 60*6  # Requests per hour, so it's once every 10 seconds
 
 CONFIGURATION_MANAGER_URL = "http://" + config('CONFIGURATION_MANAGER_SERVICE_NAME') + f".default.svc.cluster.local"
 CONFIGURATION = None

@@ -16,4 +16,5 @@ spec:
     spec:
       containers:
       - name: functional-test
-        image: gcr.io/magnetic-port-293211/functional-test:v18
+        #imagePullPolicy: Always
+        image: gcr.io/magnetic-port-293211/functional-test:v20
