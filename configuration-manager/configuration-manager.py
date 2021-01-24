@@ -109,21 +109,29 @@ def delete_configs_from_db(configurations):
         datastore_client.delete_multi(keys_to_delete)
 
 
-schema = {
+configurations_schema = {
     'type': 'array',
     'items': {
         'type': 'object',
         'properties': {
             'service_url': {'type': 'string'},
-            'frequency': {'type': 'integer'},
-            'alerting_window': {'type': 'integer'},
+            'frequency': {'type': 'number', 'exclusiveMinimum': 0},
+            'alerting_window': {'type': 'number', 'exclusiveMinimum': 0},
             'main_admin_email': {'type': 'string'},
             'secondary_admin_email': {'type': 'string'},
-            'allowed_response_time': {'type': 'integer'},
+            'allowed_response_time': {'type': 'number', 'exclusiveMinimum': 0},
         },
         'required': ['service_url', 'frequency', 'alerting_window', 'main_admin_email', 'secondary_admin_email',
                      'allowed_response_time']
     }
+}
+
+service_url_schema = {
+    'type': 'object',
+    'properties': {
+        'service_url': {'type': 'string'},
+    },
+    'required': ['service_url']
 }
 
 
@@ -134,7 +142,7 @@ def before_first_request():
 
 
 @app.route('/configurations/', methods=['PUT'])
-@expects_json(schema)
+@expects_json(configurations_schema)
 def update_configurations():
     configurations = request.get_json()
     try:
@@ -151,7 +159,7 @@ def update_configurations():
 
 
 @app.route('/configurations/', methods=['DELETE'])
-@expects_json(schema)
+@expects_json(configurations_schema)
 def delete_configurations():
     configurations = request.get_json()
     try:
@@ -167,8 +175,24 @@ def delete_configurations():
     return "OK"
 
 
-@app.route('/service-details/<service_url>/', methods=['GET'])
-def get_service_details(service_url):
+@app.route('/configurations/', methods=['GET'])
+def get_configurations():
+    try:
+        configurations = get_all_configurations()
+    except Exception as e:
+        logging.error(e)
+        return Response(
+            "Configurations get failed",
+            status=500,
+        )
+    return jsonify(configurations)
+
+
+@app.route('/service-details/', methods=['POST'])
+@expects_json(service_url_schema)
+def get_service_details():
+    data = request.get_json()
+    service_url = data["service_url"]
     key = get_datastore_key(service_url)
     configuration = datastore_client.get(key)
     if configuration is None:
