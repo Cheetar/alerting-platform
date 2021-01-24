@@ -29,8 +29,9 @@ threads_number = int(config('THREADS_NUMBER'))
 
 def submit_unavailability(url):
     logging.info("Report " + url)
+    headers = {'Content-Type': 'application/json', 'Accept':'application/json'}
     requests.post("http://" + config('ADMIN_PAGER_SERVICE_NAME') + f".default.svc.cluster.local/service-down/",
-                  data={"service_url": url})
+                  json={"service_url": url}, headers=headers)
 
 
 def test_service_available(url, alert_window):
