@@ -116,10 +116,10 @@ configurations_schema = {
         'properties': {
             'service_url': {'type': 'string'},
             'frequency': {'type': 'number', 'exclusiveMinimum': 0},
-            'alerting_window': {'type': 'number', 'exclusiveMinimum': 0},
+            'alerting_window': {'type': 'integer', 'exclusiveMinimum': 0},
             'main_admin_email': {'type': 'string'},
             'secondary_admin_email': {'type': 'string'},
-            'allowed_response_time': {'type': 'number', 'exclusiveMinimum': 0},
+            'allowed_response_time': {'type': 'integer', 'exclusiveMinimum': 0},
         },
         'required': ['service_url', 'frequency', 'alerting_window', 'main_admin_email', 'secondary_admin_email',
                      'allowed_response_time']

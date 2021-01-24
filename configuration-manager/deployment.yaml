@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: configuration-manager
-        image: gcr.io/magnetic-port-293211/configuration-manager:v1
+        image: gcr.io/magnetic-port-293211/configuration-manager:v15
         ports:
         - containerPort: 8080
         livenessProbe:
