@@ -102,16 +102,6 @@ def retrieve_service_details(service_name):
 
 
 def send_mail(to_emails, subject, html_content):
-    email = "=====================================\n"\
-            "*Email to:* " + to_emails + "\n" + \
-            "*Subject:* " + subject + "\n" + html_content + \
-            "\n=====================================\n"
-    headers = {'Content-Type': 'application/json'}
-    a = requests.post("https://hooks.slack.com/services/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",
-                  json={"text": email}, headers=headers)
-
-
-def send_mail_odl(to_emails, subject, html_content):
     message = Mail(
         from_email=config('SENDGRID_SENDER_EMAIL'),
         to_emails=to_emails,
