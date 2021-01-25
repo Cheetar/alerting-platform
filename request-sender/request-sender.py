@@ -3,6 +3,7 @@ import threading
 import logging
 import time
 import requests
+from google.api_core import retry
 from google.cloud import pubsub_v1
 from decouple import config
 from flask import Flask
@@ -28,15 +29,18 @@ threads_number = int(config('THREADS_NUMBER'))
 
 
 def submit_unavailability(url):
-    logging.info("Report " + url)
     headers = {'Content-Type': 'application/json', 'Accept':'application/json'}
-    requests.post("http://" + config('ADMIN_PAGER_SERVICE_NAME') + f".default.svc.cluster.local/service-down/",
-                  json={"service_url": url}, headers=headers)
+    try:
+        logging.info("Report " + url)
+        requests.post("http://" + config('ADMIN_PAGER_SERVICE_NAME') + f".default.svc.cluster.local/service-down/",
+                      json={"service_url": url}, headers=headers)
+    except:
+        logging.info("Do not send email.")
 
 
 def test_service_available(url, alert_window):
     try:
-        request = requests.get(url, timeout=services_timeout)
+        request = requests.get("http://" + url, timeout=services_timeout)
         if request.status_code == 200:
             logging.info("Available " + url)
             return True
@@ -46,7 +50,7 @@ def test_service_available(url, alert_window):
     except (TimeoutError, Exception):
         time.sleep(alert_window)
         try:
-            request2 = requests.get(url, timeout=services_timeout)
+            request2 = requests.get("http://" + url, timeout=services_timeout)
             if request2.status_code == 200:
                 logging.info("Available " + url)
                 return True
@@ -59,8 +63,8 @@ def test_service_available(url, alert_window):
 
 def callback(message):
     if 'service_url' not in message.attributes or 'alerting_window' not in message.attributes:
-        message.ack()
         logging.info("Attributes not complete")
+        message.ack()
         return
     if not test_service_available(message.attributes['service_url'],
                                   int(message.attributes['alerting_window'])):
@@ -69,25 +73,14 @@ def callback(message):
 
 
 def request_sender():
-    subscriber_shutdown = threading.Event()
-    futures = list()
-    subscribers = list()
-    for i in range(0, threads_number):
-        my_subscriber = pubsub_v1.SubscriberClient()
-        future = my_subscriber.subscribe(subscription_path,
-                                         callback=callback)
-        future.add_done_callback(lambda res: subscriber_shutdown.set())
-        futures.append(future)
-        subscribers.append(my_subscriber)
-    try:
-        subscriber_shutdown.wait()
-    except KeyboardInterrupt:
-        print("KeyboardInterrupt")
-    finally:
-        for f in futures:
-            f.cancel()
-        for s in subscribers:
-            s.close()
+    while True:
+        subscriber = pubsub_v1.SubscriberClient()
+        future = subscriber.subscribe(subscription_path, callback)
+        with subscriber:
+            try:
+                future.result()
+            except (TimeoutError, Exception):
+                future.cancel()
 
 
 threading.Thread(target=request_sender).start()

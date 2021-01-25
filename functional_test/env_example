@@ -1,6 +1,0 @@
-PROJECT_ID='magnetic-port-293211'
-ZONE='us-east1-c'
-CLUSTER_ID='alerting-platform-cluster'
-
-FAKE_SERVICE_SERVICE_NAME='fake-service-service'
-CONFIGURATION_MANAGER_SERVICE_NAME='configuration-manager-service'

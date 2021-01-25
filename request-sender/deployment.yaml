@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: request-sender
-        image: gcr.io/magnetic-port-293211/request-sender:v5
+        image: gcr.io/magnetic-port-293211/request-sender:v9
         ports:
         - containerPort: 8080
         livenessProbe:
