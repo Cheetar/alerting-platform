@@ -54,7 +54,7 @@ MAIN_ADMIN_EMAIL = f"{email_token}@bar.com"
 SECONDARY_ADMIN_EMAIL = f"{email_token}2@bar.com"
 ALERTING_WINDOW = 30  # seconds
 ALLOWED_RESPONSE_TIME = 30  # seconds
-FREQUENCY = 60*6  # Requests per hour, so it's once every 10 seconds
+FREQUENCY = 60*3  # Requests per hour, so it's once every 20 seconds
 
 CONFIGURATION_MANAGER_URL = "http://" + config('CONFIGURATION_MANAGER_SERVICE_NAME') + f".default.svc.cluster.local"
 CONFIGURATION = None
@@ -107,7 +107,7 @@ def get_admin_pager_pod_name():
 def check_logs_contains(admin_email):
     query = datastore_client.query(kind='Log')
     fake_service_ip = get_fake_service_ip()
-    msg = f"{admin_email} has been notified about {fake_service_ip}/test-service/ being down."
+    msg = f"Admin {admin_email} has been notified about {fake_service_ip}/test-service/ being down."
     query.add_filter("message", "=", msg)
     res = query.fetch(limit=1)
     if len(list(res)) > 0:
@@ -123,8 +123,8 @@ if __name__ == "__main__":
     logging.info(f"Adding fake service to monitoring...")
     add_fake_service_to_monitoring(fake_service_ip)
 
-    logging.info(f"Waiting for {2 * ALERTING_WINDOW} seconds...")
-    time.sleep(2 * ALERTING_WINDOW)
+    logging.info(f"Waiting for {1.5 * ALERTING_WINDOW} seconds...")
+    time.sleep(1.5 * ALERTING_WINDOW)
 
     # The fake service is running, check that admin is not informed
     logging.info(f"Checking if admin was not notified...")
@@ -136,8 +136,8 @@ if __name__ == "__main__":
     logging.info(f"Turning off the fake service...")
     turn_off_fake_service()
 
-    logging.info(f"Waiting for {2 * ALERTING_WINDOW} seconds...")
-    time.sleep(2 * ALERTING_WINDOW)
+    logging.info(f"Waiting for {1.5 * ALERTING_WINDOW} seconds...")
+    time.sleep(1.5 * ALERTING_WINDOW)
 
     # The fake service is running, check that admin is not informed
     logging.info(f"Checking if the main admin was notified...")
@@ -146,8 +146,8 @@ if __name__ == "__main__":
     else:
         logging.info("[ERROR] The main admin not informed, but the fake service is down")
 
-    logging.info(f"Waiting for {2 * ALLOWED_RESPONSE_TIME} seconds...")
-    time.sleep(2 * ALLOWED_RESPONSE_TIME)
+    logging.info(f"Waiting for {1.5 * ALLOWED_RESPONSE_TIME} seconds...")
+    time.sleep(1.5 * ALLOWED_RESPONSE_TIME)
 
     # The fake service is running, check that admin is not informed
     logging.info(f"Checking if the secondary admin was notified...")

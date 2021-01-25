@@ -154,7 +154,7 @@ def handle_notifying_admins(service_name, main_admin_email, secondary_admin_emai
         logging.info(f"Notyfing second admin...")
         notify_secondary_admin(secondary_admin_email, service_name)
         logging.info(f"Second admin has been notified")
-        store_log(f"Secondary admin {secondary_admin_email} has been notified about {service_name} being down.")
+        store_log(f"Admin {secondary_admin_email} has been notified about {service_name} being down.")
 
 
 def handle_service_down(service_name):

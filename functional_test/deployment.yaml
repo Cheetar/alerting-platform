@@ -16,4 +16,4 @@ spec:
     spec:
       containers:
       - name: functional-test
-        image: gcr.io/magnetic-port-293211/functional-test:v30
+        image: gcr.io/magnetic-port-293211/functional-test:v31
