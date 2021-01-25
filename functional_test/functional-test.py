@@ -107,7 +107,7 @@ def get_admin_pager_pod_name():
 def check_logs_contains(admin_email):
     query = datastore_client.query(kind='Log')
     fake_service_ip = get_fake_service_ip()
-    msg = f"Admin {admin_email} has been notified about {fake_service_ip}/test-service/ being down."
+    msg = f"{admin_email} has been notified about {fake_service_ip}/test-service/ being down."
     query.add_filter("message", "=", msg)
     res = query.fetch(limit=1)
     if len(list(res)) > 0:
